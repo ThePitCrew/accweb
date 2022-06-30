@@ -20,5 +20,5 @@ export default [
     {value: "zolder", label: "Zolder"},
     {value: "watkins_glen", label: "Watkins Glen"},
     {value: "indianapolis", label: "Indianapolis"},
-    {value: "cota", label: "Circuit of the Americas"}
+    {value: "cota", label: "Circuit of the America"}
 ];
