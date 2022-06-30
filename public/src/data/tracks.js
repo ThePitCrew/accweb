@@ -18,4 +18,7 @@ export default [
     {value: "suzuka", label: "Suzuka"},
     {value: "zandvoort", label: "Zandvoort"},
     {value: "zolder", label: "Zolder"},
+    {value: "watkins_glen", label: "Watkins Glen"},
+    {value: "indianapolis", label: "Indianapolis"},
+    {value: "cota", label: "Circuit of the Americas"}
 ];
