@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.19.0
+* Fix some typo errors. #210 #212
+* Fix float point handling for rain and cloud. #211
+* Introducing the advance windows features as Firewall management, custom core affinity and cpu priority. #213
+* Add accserver auto update before start instance. 
+
 ## 1.18.0
 * Add sorting by number of players.
 * Add session remaining time in the servers list.
@@ -8,6 +14,7 @@
 * Add config `skip_wine` to skip wine usage even on linux (good for development on windows).
 * Update js libraries versions.
 * [Add devcontainer to development environment (vscode)](https://code.visualstudio.com/docs/remote/containers).
+* Add America DLC Tracks
 
 ## 1.17.0
 * Link logo to front page.
