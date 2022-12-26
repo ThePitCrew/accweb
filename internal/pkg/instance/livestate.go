@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -389,19 +388,9 @@ func (l *LiveState) logAndClearIncidents(oldType string) {
 	}
 
 	file, _ := json.MarshalIndent(l.Incidents, "", " ")
-
-	path := filepath.Join(l.baseDir, fmt.Sprintf("/logs/%s-%s.json", oldType, TimeStamp()))
+	path := filepath.Join(l.baseDir, fmt.Sprintf("/%s/%s_%s.json", logDir, oldType, time.Now().Format(logTimeFormat)))
 	_ = ioutil.WriteFile(path, file, 0644)
 
 	l.Incidents = []ServerIncident{}
 
-}
-
-// GetTimeStamp returns a timestamp in a file name friendly, version of the RFC3339
-// format.  The string produced by RFC3339 includes a couple colons ':' that are not
-// friendly to most filenames (unix and dos a like).  The colons need to be escaped
-// if used in a filename, since they are useless, we'll rip em.
-func TimeStamp() string {
-	ts := time.Now().UTC().Format(time.RFC3339)
-	return strings.Replace(ts, ":", "", -1) // get rid of offensive colons
 }
