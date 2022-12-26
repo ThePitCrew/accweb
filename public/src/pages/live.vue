@@ -112,7 +112,7 @@
                 <div id="incident">
                     <h3>Incidents</h3>
 
-                    <div class="message" v-for="item in countedIncidents" :key="item.ts">
+                    <div class="message" v-for="item in countedIncidents">
                         <div class="name">{{ item.name }}:</div>
                         <div class="msg">{{ item.count }}</div>
                     </div>
@@ -171,7 +171,9 @@ export default {
     },
     computed: {
         countedIncidents() {
-            return this.countIncidents(this.data.live.incidents.slice().reverse());
+            let counted = this.countIncidents(this.data.live.incidents.slice().reverse())
+            const ordered = _.orderBy(counted, "count", "desc")
+            return ordered;
         },
         orderedCars: function () {
             const ordered = _.orderBy(this.data.live.cars, "position");
