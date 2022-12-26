@@ -112,13 +112,15 @@
                 <div id="incident">
                     <h3>Incidents</h3>
 
-                    <div class="message" v-for="item in limitedIncidents" :key="item.ts">
-                        <div class="ts">{{ new Date(item.ts).toLocaleString() }}</div>
-                        <div class="name">{{ item.name }}</div>
+                    <div class="message" v-for="item in countedIncidents" :key="item.ts">
+                        <div class="name">{{ item.name }}:</div>
+                        <div class="msg">{{ item.count }}</div>
                     </div>
-
-
                 </div>
+            </div>
+
+
+        </div>
 
 
             </div>
@@ -168,8 +170,8 @@ export default {
         }
     },
     computed: {
-        limitedIncidents: function () {
-            return this.data.live.incidents.slice().reverse().slice(0, 30);
+        countedIncidents() {
+            return this.countIncidents(this.data.live.incidents.slice().reverse());
         },
         orderedCars: function () {
             const ordered = _.orderBy(this.data.live.cars, "position");
@@ -264,6 +266,12 @@ export default {
             }
 
             return this.msToTime(gap);
+        },
+
+        countIncidents(array) {
+            //add 1 if the name exists, initialize as 1 if it does not
+            let counts = array.reduce((out, { name }) => ({ ...out, [name]: out[name] + 1 || 1 }), {});
+            return Object.keys(counts).map(key => ({ name: key, count: counts[key] }));
         }
     }
 }
