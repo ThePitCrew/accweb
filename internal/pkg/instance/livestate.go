@@ -35,6 +35,7 @@ type CarState struct {
 	CarModel           int            `json:"carModel"`
 	Drivers            []*DriverState `json:"drivers"`
 	CurrentDriver      *DriverState   `json:"currentDriver"`
+	CurrentDriverIdx   int            `json:"currentDriverIdx"`
 	Fuel               int            `json:"fuel"`
 	Position           int            `json:"position"`
 	NrLaps             int            `json:"nrLaps"`
@@ -94,6 +95,7 @@ type ServerIncident struct {
 	Timestamp    time.Time `json:"ts"`
 	Name         string    `json:"name"`
 	PlayerID     string    `json:"playerID"`
+	DriverIdx    int       `json:"driverIdx"`
 	CarID        int       `json:"carID"`
 	SessionType  string    `json:"sessionType"`
 	SessionPhase string    `json:"sessionPhase"`
@@ -364,7 +366,7 @@ func (l *LiveState) addDamage(carID int) {
 	var playerID string
 
 	if driver == nil {
-		name = fmt.Sprintf("Unknown from Car %d", car.RaceNumber)
+		name = fmt.Sprintf("Driver %d from Car %d", car.CurrentDriverIdx, car.RaceNumber)
 		playerID = "Unknown"
 	} else {
 		name = driver.Name
@@ -375,10 +377,20 @@ func (l *LiveState) addDamage(carID int) {
 		Timestamp:    time.Now().UTC(),
 		Name:         name,
 		PlayerID:     playerID,
+		DriverIdx:    car.CurrentDriverIdx,
 		CarID:        carID,
 		SessionType:  l.SessionType,
 		SessionPhase: l.SessionPhase,
 	})
+}
+
+func (l *LiveState) stintStart(carID int, driverIdx int) {
+	car := l.Cars[carID]
+	if car == nil {
+		return
+	}
+
+	car.CurrentDriverIdx = driverIdx
 }
 
 func (l *LiveState) logAndClearIncidents(oldType string) {

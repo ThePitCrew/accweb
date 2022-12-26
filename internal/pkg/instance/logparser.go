@@ -63,6 +63,7 @@ func makeLogMatchers() []*logMatcher {
 		newLogMatcher(`^CHAT (.*?): (.*)$`, handleChat),
 		newLogMatcher(`^Updated leaderboard for \d+ clients \(([A-Za-z ]+)-<([-A-Za-z ]+)> (\d+) min\)$`, handleSessionUpdate),
 		newLogMatcher(`new damage zones for car (\d+)$`, handleDamageZones),
+		newLogMatcher(`Starting stint for car (\d+) driver (\d+)`, handleStintStart),
 	}
 }
 
@@ -229,4 +230,8 @@ func handleChat(l *LiveState, p []string) {
 
 func handleDamageZones(l *LiveState, p []string) {
 	l.addDamage(toInt((p[1])))
+}
+
+func handleStintStart(l *LiveState, p []string) {
+	l.stintStart(toInt(p[1]), toInt(p[2]))
 }
