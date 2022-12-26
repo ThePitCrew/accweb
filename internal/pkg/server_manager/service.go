@@ -223,7 +223,7 @@ func (s *Service) Create(accConfig *instance.AccConfigFiles, accWebSettings inst
 			UpdatedAt: time.Now().UTC(),
 		},
 		AccCfg: *accConfig,
-		Live:   instance.NewLiveState(),
+		Live:   instance.NewLiveState(baseDir),
 	}
 
 	if _, err := srv.UpdateAccServerExe(s.config.AccServerFullPath()); err != nil {

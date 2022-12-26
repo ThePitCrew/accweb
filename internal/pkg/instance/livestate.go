@@ -1,7 +1,12 @@
 package instance
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -86,6 +91,14 @@ type ServerChat struct {
 	Name      string    `json:"name"`
 	Message   string    `json:"message"`
 }
+type ServerIncident struct {
+	Timestamp    time.Time `json:"ts"`
+	Name         string    `json:"name"`
+	PlayerID     string    `json:"playerID"`
+	CarID        int       `json:"carID"`
+	SessionType  string    `json:"sessionType"`
+	SessionPhase string    `json:"sessionPhase"`
+}
 
 type LiveState struct {
 	ServerState      ServerState       `json:"serverState"`
@@ -97,19 +110,24 @@ type LiveState struct {
 	Cars             map[int]*CarState `json:"cars"`
 	UpdatedAt        time.Time         `json:"updatedAt"`
 	Chats            []ServerChat      `json:"chats"`
+	Incidents        []ServerIncident  `json:"incidents"`
+
+	baseDir string
 
 	// drivers waiting to be assigned to a car, key: ConnectionID
 	connections map[int]*DriverState
 }
 
-func NewLiveState() *LiveState {
+func NewLiveState(baseDir string) *LiveState {
 	return &LiveState{
+
 		ServerState: ServerStateOffline,
 		Cars:        map[int]*CarState{},
 		connections: map[int]*DriverState{},
 		UpdatedAt:   time.Now().UTC(),
 		Chats:       []ServerChat{},
-	}
+		Incidents:   []ServerIncident{},
+		baseDir:     baseDir}
 }
 
 func (l *LiveState) setServerState(s ServerState) {
@@ -131,6 +149,7 @@ func (l *LiveState) setSessionState(t, p string, r int) {
 	l.SessionRemaining = r
 
 	if t != oldType {
+		l.logAndClearIncidents(oldType)
 		l.advanceSession()
 	}
 }
@@ -331,4 +350,58 @@ func (l *LiveState) addChat(name, message string) {
 	if t > nrMsg {
 		l.Chats = l.Chats[t-nrMsg : t]
 	}
+}
+
+func (l *LiveState) addDamage(carID int) {
+
+	car := l.Cars[carID]
+	if car == nil {
+		return
+	}
+
+	driver := car.CurrentDriver
+
+	var name string
+	var playerID string
+
+	if driver == nil {
+		name = fmt.Sprintf("Unknown from Car %d", car.RaceNumber)
+		playerID = "Unknown"
+	} else {
+		name = driver.Name
+		playerID = driver.PlayerID
+	}
+
+	l.Incidents = append(l.Incidents, ServerIncident{
+		Timestamp:    time.Now().UTC(),
+		Name:         name,
+		PlayerID:     playerID,
+		CarID:        carID,
+		SessionType:  l.SessionType,
+		SessionPhase: l.SessionPhase,
+	})
+}
+
+func (l *LiveState) logAndClearIncidents(oldType string) {
+
+	if oldType == "" {
+		return
+	}
+
+	file, _ := json.MarshalIndent(l.Incidents, "", " ")
+
+	path := filepath.Join(l.baseDir, fmt.Sprintf("/logs/%s-%s.json", oldType, TimeStamp()))
+	_ = ioutil.WriteFile(path, file, 0644)
+
+	l.Incidents = []ServerIncident{}
+
+}
+
+// GetTimeStamp returns a timestamp in a file name friendly, version of the RFC3339
+// format.  The string produced by RFC3339 includes a couple colons ':' that are not
+// friendly to most filenames (unix and dos a like).  The colons need to be escaped
+// if used in a filename, since they are useless, we'll rip em.
+func TimeStamp() string {
+	ts := time.Now().UTC().Format(time.RFC3339)
+	return strings.Replace(ts, ":", "", -1) // get rid of offensive colons
 }

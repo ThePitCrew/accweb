@@ -107,6 +107,20 @@
                         <div class="msg">{{item.message}}</div>
                     </div>
                 </div>
+
+
+                <div id="incident">
+                    <h3>Incidents</h3>
+
+                    <div class="message" v-for="item in limitedIncidents" :key="item.ts">
+                        <div class="ts">{{ new Date(item.ts).toLocaleString() }}</div>
+                        <div class="name">{{ item.name }}</div>
+                    </div>
+
+
+                </div>
+
+
             </div>
         </div>
     </layout>
@@ -137,7 +151,8 @@ export default {
                     sessionPhase: "",
                     sessionRemaining: 0,
                     cars: {},
-                    chats: []
+                    chats: [],
+                    incidents: []
                 }
             },
         };
@@ -153,6 +168,9 @@ export default {
         }
     },
     computed: {
+        limitedIncidents: function () {
+            return this.data.live.incidents.slice().reverse().slice(0, 30);
+        },
         orderedCars: function () {
             const ordered = _.orderBy(this.data.live.cars, "position");
             return _.filter(ordered, (o) => { return o.currentDriver !== null });
@@ -298,6 +316,16 @@ tr:nth-child(odd) {
 #chat .message {
     margin-bottom: 5px;
 } 
+
+#incident .message div {
+    display: inline;
+    margin-right: 10px;
+}
+
+#incident .message {
+    margin-bottom: 5px;
+}
+
 
 .message .ts {
     color: #304363;

@@ -15,7 +15,7 @@ var DefaultCoreAffinity = uint(math.Pow(2, float64(runtime.NumCPU()))) - 1
 
 // LoadServerFromPath load the server configuration data based on baseDir and returns a Instance instance
 func LoadServerFromPath(baseDir string) (*Instance, error) {
-	s := &Instance{Path: baseDir, Live: NewLiveState()}
+	s := &Instance{Path: baseDir, Live: NewLiveState(baseDir)}
 
 	if cfg, err := loadAccWebConfig(baseDir); err != nil {
 		return nil, err
