@@ -389,8 +389,14 @@ func (l *LiveState) stintStart(carID int, driverIdx int) {
 	if car == nil {
 		return
 	}
-
 	car.CurrentDriverIdx = driverIdx
+	if len(car.Drivers) > driverIdx {
+		driver := car.Drivers[driverIdx]
+		if driver != nil {
+			car.CurrentDriver = driver
+		}
+	}
+
 }
 
 func (l *LiveState) logAndClearIncidents(oldType string) {
