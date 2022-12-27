@@ -94,11 +94,11 @@ type ServerChat struct {
 type ServerIncident struct {
 	Timestamp    time.Time `json:"ts"`
 	Name         string    `json:"name"`
-	PlayerID     string    `json:"playerID"`
 	DriverIdx    int       `json:"driverIdx"`
 	CarID        int       `json:"carID"`
 	SessionType  string    `json:"sessionType"`
 	SessionPhase string    `json:"sessionPhase"`
+	Lap          int       `json:"lap"`
 }
 
 type LiveState struct {
@@ -363,24 +363,21 @@ func (l *LiveState) addDamage(carID int) {
 	driver := car.CurrentDriver
 
 	var name string
-	var playerID string
 
 	if driver == nil {
 		name = fmt.Sprintf("Driver %d from Car %d", car.CurrentDriverIdx, car.RaceNumber)
-		playerID = "Unknown"
 	} else {
 		name = driver.Name
-		playerID = driver.PlayerID
 	}
 
 	l.Incidents = append(l.Incidents, ServerIncident{
 		Timestamp:    time.Now().UTC(),
 		Name:         name,
-		PlayerID:     playerID,
 		DriverIdx:    car.CurrentDriverIdx,
 		CarID:        carID,
 		SessionType:  l.SessionType,
 		SessionPhase: l.SessionPhase,
+		Lap:          car.NrLaps,
 	})
 }
 
