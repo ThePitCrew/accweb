@@ -62,6 +62,8 @@ func makeLogMatchers() []*logMatcher {
 		newLogMatcher(`^\s*Car (\d+) Pos (\d+)$`, handleGridPosition),
 		newLogMatcher(`^CHAT (.*?): (.*)$`, handleChat),
 		newLogMatcher(`^Updated leaderboard for \d+ clients \(([A-Za-z ]+)-<([-A-Za-z ]+)> (\d+) min\)$`, handleSessionUpdate),
+		newLogMatcher(`new damage zones for car (\d+)$`, handleDamageZones),
+		newLogMatcher(`Starting stint for car (\d+) driver (\d+)`, handleStintStart),
 	}
 }
 
@@ -141,9 +143,12 @@ func toLap(l *LiveState, p []string) *LapState {
 	return lap
 }
 
-//             1            2          3  4  5                  6                       7
+//	1            2          3  4  5                  6                       7
+//
 // Lap carId 1005, driverId 0, lapTime 1:53:895, timestampMS 52610019.000000, flags: 8808693760,
-//       9            11           13           14          15     16      17      18
+//
+//	9            11           13           14          15     16      17      18
+//
 // S1 0:36:280, S2 0:40:037, S3 0:37:577, fuel 40.000000, HasCut, InLap, OutLap, SessionOver
 func handleLap(l *LiveState, p []string) {
 	lap := toLap(l, p)
@@ -221,4 +226,12 @@ func handleResettingRace(l *LiveState, _ []string) {
 
 func handleChat(l *LiveState, p []string) {
 	l.addChat(p[1], p[2])
+}
+
+func handleDamageZones(l *LiveState, p []string) {
+	l.addDamage(toInt((p[1])))
+}
+
+func handleStintStart(l *LiveState, p []string) {
+	l.stintStart(toInt(p[1]), toInt(p[2]))
 }

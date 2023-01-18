@@ -44,7 +44,7 @@ definitions:
       pid:
         type: integer
       serverState:
-        type: string
+        $ref: '#/definitions/instance.ServerState'
       sessionPhase:
         type: string
       sessionRemaining:
@@ -73,7 +73,7 @@ definitions:
       pid:
         type: integer
       serverState:
-        type: string
+        $ref: '#/definitions/instance.ServerState'
       sessionPhase:
         type: string
       sessionRemaining:
@@ -390,10 +390,14 @@ definitions:
         items:
           $ref: '#/definitions/instance.ServerChat'
         type: array
+      incidents:
+        items:
+          $ref: '#/definitions/instance.ServerIncident'
+        type: array
       nrClients:
         type: integer
       serverState:
-        type: string
+        $ref: '#/definitions/instance.ServerState'
       sessionPhase:
         type: string
       sessionRemaining:
@@ -414,6 +418,33 @@ definitions:
       ts:
         type: string
     type: object
+  instance.ServerIncident:
+    properties:
+      carID:
+        type: integer
+      name:
+        type: string
+      playerID:
+        type: string
+      sessionPhase:
+        type: string
+      sessionType:
+        type: string
+      ts:
+        type: string
+    type: object
+  instance.ServerState:
+    enum:
+    - offline
+    - starting
+    - not_registered
+    - online
+    type: string
+    x-enum-varnames:
+    - ServerStateOffline
+    - ServerStateStarting
+    - ServerStateNotRegistered
+    - ServerStateOnline
   instance.SessionSettings:
     properties:
       dayOfWeekend:
@@ -528,9 +559,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -558,7 +589,7 @@ paths:
           schema:
             $ref: '#/definitions/app.InstancePayload'
         "404":
-          description: ""
+          description: Not Found
       security:
       - JWT: []
       summary: Get acc instance information
@@ -592,7 +623,7 @@ paths:
           schema:
             $ref: '#/definitions/app.AccWError'
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -617,9 +648,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -648,7 +679,7 @@ paths:
           schema:
             type: string
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -677,7 +708,7 @@ paths:
           schema:
             $ref: '#/definitions/app.LiveServerInstancePayload'
         "404":
-          description: ""
+          description: Not Found
       security:
       - JWT: []
       summary: Get acc instance live information
@@ -702,7 +733,7 @@ paths:
           schema:
             $ref: '#/definitions/app.accWebInstanceLogs'
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -727,13 +758,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/app.AccWError'
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -758,13 +789,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/app.AccWError'
         "404":
-          description: ""
+          description: Not Found
         "500":
           description: Internal Server Error
           schema:
@@ -781,7 +812,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
       security:
       - JWT: []
       summary: Returns server OS informations
@@ -815,7 +846,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
       security:
       - JWT: []
       summary: Stops all running ACC dedicated servers

@@ -1,6 +1,10 @@
 package instance
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"sort"
 	"time"
 )
@@ -31,6 +35,7 @@ type CarState struct {
 	CarModel           int            `json:"carModel"`
 	Drivers            []*DriverState `json:"drivers"`
 	CurrentDriver      *DriverState   `json:"currentDriver"`
+	CurrentDriverIdx   int            `json:"currentDriverIdx"`
 	Fuel               int            `json:"fuel"`
 	Position           int            `json:"position"`
 	NrLaps             int            `json:"nrLaps"`
@@ -86,6 +91,15 @@ type ServerChat struct {
 	Name      string    `json:"name"`
 	Message   string    `json:"message"`
 }
+type ServerIncident struct {
+	Timestamp    time.Time `json:"ts"`
+	Name         string    `json:"name"`
+	DriverIdx    int       `json:"driverIdx"`
+	CarID        int       `json:"carID"`
+	SessionType  string    `json:"sessionType"`
+	SessionPhase string    `json:"sessionPhase"`
+	Lap          int       `json:"lap"`
+}
 
 type LiveState struct {
 	ServerState      ServerState       `json:"serverState"`
@@ -97,19 +111,24 @@ type LiveState struct {
 	Cars             map[int]*CarState `json:"cars"`
 	UpdatedAt        time.Time         `json:"updatedAt"`
 	Chats            []ServerChat      `json:"chats"`
+	Incidents        []ServerIncident  `json:"incidents"`
+
+	baseDir string
 
 	// drivers waiting to be assigned to a car, key: ConnectionID
 	connections map[int]*DriverState
 }
 
-func NewLiveState() *LiveState {
+func NewLiveState(baseDir string) *LiveState {
 	return &LiveState{
+
 		ServerState: ServerStateOffline,
 		Cars:        map[int]*CarState{},
 		connections: map[int]*DriverState{},
 		UpdatedAt:   time.Now().UTC(),
 		Chats:       []ServerChat{},
-	}
+		Incidents:   []ServerIncident{},
+		baseDir:     baseDir}
 }
 
 func (l *LiveState) setServerState(s ServerState) {
@@ -131,6 +150,7 @@ func (l *LiveState) setSessionState(t, p string, r int) {
 	l.SessionRemaining = r
 
 	if t != oldType {
+		l.logAndClearIncidents(oldType)
 		l.advanceSession()
 	}
 }
@@ -331,4 +351,54 @@ func (l *LiveState) addChat(name, message string) {
 	if t > nrMsg {
 		l.Chats = l.Chats[t-nrMsg : t]
 	}
+}
+
+func (l *LiveState) addDamage(carID int) {
+
+	car := l.Cars[carID]
+	if car == nil {
+		return
+	}
+
+	driver := car.CurrentDriver
+
+	var name string
+
+	if driver == nil {
+		name = fmt.Sprintf("Driver %d from Car %d", car.CurrentDriverIdx, car.RaceNumber)
+	} else {
+		name = driver.Name
+	}
+
+	l.Incidents = append(l.Incidents, ServerIncident{
+		Timestamp:    time.Now().UTC(),
+		Name:         name,
+		DriverIdx:    car.CurrentDriverIdx,
+		CarID:        carID,
+		SessionType:  l.SessionType,
+		SessionPhase: l.SessionPhase,
+		Lap:          car.NrLaps,
+	})
+}
+
+func (l *LiveState) stintStart(carID int, driverIdx int) {
+	car := l.Cars[carID]
+	if car == nil {
+		return
+	}
+	car.CurrentDriverIdx = driverIdx
+}
+
+func (l *LiveState) logAndClearIncidents(oldType string) {
+
+	if oldType == "" {
+		return
+	}
+
+	file, _ := json.MarshalIndent(l.Incidents, "", " ")
+	path := filepath.Join(l.baseDir, fmt.Sprintf("/%s/%s_%s.json", logDir, oldType, time.Now().Format(logTimeFormat)))
+	_ = ioutil.WriteFile(path, file, 0644)
+
+	l.Incidents = []ServerIncident{}
+
 }

@@ -107,6 +107,22 @@
                         <div class="msg">{{item.message}}</div>
                     </div>
                 </div>
+
+
+                <div id="incident">
+                    <h3>Incidents</h3>
+
+                    <div class="message" v-for="item in countedIncidents">
+                        <div class="name">{{ item.name }}:</div>
+                        <div class="msg">{{ item.count }}</div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
             </div>
         </div>
     </layout>
@@ -137,7 +153,8 @@ export default {
                     sessionPhase: "",
                     sessionRemaining: 0,
                     cars: {},
-                    chats: []
+                    chats: [],
+                    incidents: []
                 }
             },
         };
@@ -153,6 +170,11 @@ export default {
         }
     },
     computed: {
+        countedIncidents() {
+            let counted = this.countIncidents(this.data.live.incidents.slice().reverse())
+            const ordered = _.orderBy(counted, "count", "desc")
+            return ordered;
+        },
         orderedCars: function () {
             const ordered = _.orderBy(this.data.live.cars, "position");
             return _.filter(ordered, (o) => { return o.currentDriver !== null });
@@ -246,6 +268,12 @@ export default {
             }
 
             return this.msToTime(gap);
+        },
+
+        countIncidents(array) {
+            //add 1 if the name exists, initialize as 1 if it does not
+            let counts = array.reduce((out, { name }) => ({ ...out, [name]: out[name] + 1 || 1 }), {});
+            return Object.keys(counts).map(key => ({ name: key, count: counts[key] }));
         }
     }
 }
@@ -298,6 +326,16 @@ tr:nth-child(odd) {
 #chat .message {
     margin-bottom: 5px;
 } 
+
+#incident .message div {
+    display: inline;
+    margin-right: 10px;
+}
+
+#incident .message {
+    margin-bottom: 5px;
+}
+
 
 .message .ts {
     color: #304363;
